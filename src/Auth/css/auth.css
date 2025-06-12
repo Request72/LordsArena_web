@@ -1,0 +1,81 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap');
+
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: radial-gradient(circle at top, #1b1f2f 0%, #0d0f17 100%);
+    font-family: 'Orbitron', sans-serif;
+}
+
+.auth-form {
+    background-color: #1e2238;
+    padding: 2.5rem 3rem;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+    width: 340px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 2px solid #00f0ff;
+}
+
+.auth-form h2 {
+    margin-bottom: 1.5rem;
+    color: #00f0ff;
+    text-shadow: 0 0 10px #00f0ff;
+    font-size: 1.8rem;
+}
+
+.auth-form input {
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    border: 1px solid #00f0ff;
+    border-radius: 8px;
+    background-color: #111522;
+    color: #00f0ff;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.2s ease-in-out;
+}
+
+.auth-form input:focus {
+    border-color: #00ffe0;
+    box-shadow: 0 0 8px #00ffe0;
+}
+
+.auth-form button {
+    width: 100%;
+    padding: 0.75rem;
+    background: linear-gradient(90deg, #00ffe0, #00f0ff);
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    color: #000;
+    cursor: pointer;
+    box-shadow: 0 0 10px #00ffe0;
+    transition: transform 0.2s ease;
+}
+
+.auth-form button:hover {
+    transform: scale(1.05);
+    background: linear-gradient(90deg, #00f0ff, #00ffe0);
+}
+
+.auth-switch {
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    color: #ccc;
+}
+
+.auth-switch a {
+    color: #00f0ff;
+    text-decoration: none;
+}
+
+.auth-switch a:hover {
+    text-decoration: underline;
+}

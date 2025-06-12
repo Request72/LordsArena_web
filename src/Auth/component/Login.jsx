@@ -1,40 +1,47 @@
-// src/Auth/component/Login.tsx
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import '../css/auth.css';
 
-const Login: React.FC = () => {
+const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const navigate = useNavigate();
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
-        // Fake login logic for now
-        if (email === 'test@example.com' && password === '1234') {
-            localStorage.setItem('token', 'test_token');
-            navigate('/dashboard');
+
+        if (!email || !password) return alert('Email and password are required');
+
+        try {
+            const res = await fetch('http://localhost:5000/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password }),
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                localStorage.setItem('token', data.token);
+                window.location.href = '/dashboard';
+            } else {
+                alert(data.msg || 'Login failed');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Server error');
         }
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100">
-            <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md space-y-4 w-80">
-                <h2 className="text-2xl font-bold text-center">Login</h2>
-                <input
-                    className="border p-2 w-full rounded"
-                    type="email"
-                    placeholder="Email"
-                    onChange={e => setEmail(e.target.value)}
-                />
-                <input
-                    className="border p-2 w-full rounded"
-                    type="password"
-                    placeholder="Password"
-                    onChange={e => setPassword(e.target.value)}
-                />
-                <button className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600" type="submit">
-                    Login
-                </button>
+        <div className="auth-container">
+            <form className="auth-form" onSubmit={handleLogin}>
+                <h2>Login</h2>
+                <input type="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} />
+                <input type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} />
+                <button type="submit">Login</button>
+                <p className="auth-switch">
+                    Don't have an account? <Link to="/signup">Sign up</Link>
+                </p>
             </form>
         </div>
     );
