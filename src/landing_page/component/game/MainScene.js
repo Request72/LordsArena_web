@@ -1,146 +1,107 @@
 import Phaser from 'phaser';
-import { socket } from './socket';
+import backgroundImage from '../../../assets/images/background.png';
+import bulletImage from '../../../assets/images/bullet.png';
+import hitSound from '../../../assets/audio/hit.wav';
+import backgroundMusic from '../../../assets/audio/background.mp3';
+import sherImg from '../../../assets/images/sher.png';
+import kpImg from '../../../assets/images/kp.png';
+import prachandaImg from '../../../assets/images/prachanda.png';
 
 export default class MainScene extends Phaser.Scene {
     constructor() {
         super('MainScene');
-        this.players = {};
-        this.healthBars = {};
-        this.names = {};
+        this.enemy = null;
+        this.enemySpeed = 100;
+        this.enemyHealth = 100;
     }
 
     preload() {
-        this.load.image('background', '/assets/images/warzone.png');
-        this.load.image('bullet', '/assets/images/bullet.png');
-        this.load.image('kp', '/assets/images/kp.png');
-        this.load.image('sher', '/assets/images/sher.png');
-        this.load.image('prachanda', '/assets/images/prachanda.png');
-        this.load.audio('bgMusic', '/assets/audio/background.mp3');
-        this.load.audio('shoot', '/assets/audio/bullet.wav');
-        this.load.audio('hit', '/assets/audio/hit.wav');
+        this.load.image('bg', backgroundImage);
+        this.load.image('bullet', bulletImage);
+        this.load.audio('hit', hitSound);
+        this.load.audio('bgm', backgroundMusic);
+        this.load.image('sher', sherImg);
+        this.load.image('kp', kpImg);
+        this.load.image('prachanda', prachandaImg);
     }
 
     create() {
-        this.bg = this.add.image(0, 0, 'background').setOrigin(0, 0).setDepth(-1);
-        this.bg.setDisplaySize(this.scale.width, this.scale.height); // 🔥 scale background to full
+        this.add.image(0, 0, 'bg').setOrigin(0).setDisplaySize(this.sys.game.config.width, this.sys.game.config.height);
 
-        this.bgMusic = this.sound.add('bgMusic', { loop: true, volume: 0.3 });
-        this.bgMusic.play();
+        const selectedCharacter = localStorage.getItem('selectedCharacter') || 'sher';
+        this.player = this.physics.add.sprite(200, 300, selectedCharacter).setScale(0.4).setCollideWorldBounds(true);
 
-        this.shootSound = this.sound.add('shoot', { volume: 0.5 });
-        this.hitSound = this.sound.add('hit', { volume: 0.5 });
+        this.enemy = this.physics.add.sprite(800, 300, 'prachanda').setScale(0.4).setCollideWorldBounds(true);
 
-        this.mKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.M);
-        this.cursors = this.input.keyboard.createCursorKeys();
-        this.spacebar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+        this.enemyHealthBar = this.add.graphics();
+        this.drawEnemyHealth();
 
         this.bullets = this.physics.add.group();
+        this.enemyBullets = this.physics.add.group();
 
-        socket.emit('join-room', this.roomId);
+        this.cursors = this.input.keyboard.createCursorKeys();
+        this.shootKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
-        socket.on('init-player', ({ id, x, y, character, username }) => {
-            this.myId = id;
-            this.spawnPlayer(id, x, y, character, username);
-            this.cameras.main.startFollow(this.players[id]);
-        });
+        this.hitSound = this.sound.add('hit');
+        this.bgm = this.sound.add('bgm', { loop: true, volume: 0.3 });
+        this.bgm.play();
 
-        socket.on('player-joined', ({ id, x, y, character, username }) => {
-            if (!this.players[id]) this.spawnPlayer(id, x, y, character, username);
-        });
+        this.lastFired = 0;
+        this.enemyLastShot = 0;
 
-        socket.on('player-moved', ({ id, x, y }) => {
-            if (this.players[id]) {
-                this.players[id].setPosition(x, y);
-                this.healthBars[id].setPosition(x - 25, y - 40);
-                this.names[id].setPosition(x, y - 60);
-            }
-        });
-
-        socket.on('player-disconnected', (id) => {
-            if (this.players[id]) {
-                this.players[id].destroy();
-                this.healthBars[id].destroy();
-                this.names[id].destroy();
-                delete this.players[id];
-                delete this.healthBars[id];
-                delete this.names[id];
-            }
-        });
-
-        this.physics.world.on('worldbounds', (body) => {
-            body.gameObject.destroy();
-        });
-
-        // 🔥 Fullscreen Resize Background
-        this.scale.on('resize', (gameSize) => {
-            this.bg.setDisplaySize(gameSize.width, gameSize.height);
-        });
+        this.physics.add.collider(this.bullets, this.enemy, this.handleEnemyHit, null, this);
+        this.physics.add.collider(this.enemyBullets, this.player, this.handlePlayerHit, null, this);
     }
 
-    spawnPlayer(id, x, y, character, username) {
-        const player = this.physics.add.sprite(x, y, character);
-        this.players[id] = player;
-
-        const healthBar = this.add.graphics();
-        healthBar.fillStyle(0xff0000, 1);
-        healthBar.fillRect(x - 25, y - 40, 50, 5);
-        this.healthBars[id] = healthBar;
-
-        const nameText = this.add.text(x, y - 60, username, {
-            fontSize: '14px',
-            fill: '#fff',
-            fontFamily: 'Arial',
-        }).setOrigin(0.5);
-        this.names[id] = nameText;
-
-        player.health = 100;
-    }
-
-    update() {
-        const player = this.players[this.myId];
-        if (!player) return;
-
+    update(time) {
+        // Player movement
         const speed = 200;
-        player.setVelocity(0);
+        this.player.setVelocity(0);
+        if (this.cursors.left.isDown) this.player.setVelocityX(-speed);
+        else if (this.cursors.right.isDown) this.player.setVelocityX(speed);
+        if (this.cursors.up.isDown) this.player.setVelocityY(-speed);
+        else if (this.cursors.down.isDown) this.player.setVelocityY(speed);
 
-        if (this.cursors.left.isDown) player.setVelocityX(-speed);
-        if (this.cursors.right.isDown) player.setVelocityX(speed);
-        if (this.cursors.up.isDown) player.setVelocityY(-speed);
-        if (this.cursors.down.isDown) player.setVelocityY(speed);
-
-        this.healthBars[this.myId].setPosition(player.x - 25, player.y - 40);
-        this.names[this.myId].setPosition(player.x, player.y - 60);
-
-        socket.emit('move-player', {
-            roomId: this.roomId,
-            x: player.x,
-            y: player.y,
-        });
-
-        if (Phaser.Input.Keyboard.JustDown(this.mKey)) {
-            this.bgMusic.setMute(!this.bgMusic.mute);
-        }
-
-        if (Phaser.Input.Keyboard.JustDown(this.spacebar)) {
-            const bullet = this.bullets.create(player.x + 20, player.y, 'bullet');
+        // Player shooting
+        if (this.shootKey.isDown && time > this.lastFired) {
+            const bullet = this.bullets.create(this.player.x + 20, this.player.y, 'bullet');
             bullet.setVelocityX(400);
-            bullet.setCollideWorldBounds(true);
-            bullet.body.onWorldBounds = true;
-
-            this.shootSound.play();
-
-            Object.entries(this.players).forEach(([id, enemy]) => {
-                if (id !== this.myId) {
-                    this.physics.add.overlap(bullet, enemy, () => {
-                        if (enemy.health > 0) {
-                            enemy.health -= 10;
-                            this.healthBars[id].scaleX = enemy.health / 100;
-                            this.hitSound.play();
-                        }
-                        bullet.destroy();
-                    });
-                }
-            });
+            this.lastFired = time + 400;
         }
+
+        // Simple Enemy AI
+        if (this.enemy && this.enemyHealth > 0) {
+            this.physics.moveToObject(this.enemy, this.player, this.enemySpeed);
+
+            const dist = Phaser.Math.Distance.Between(this.enemy.x, this.enemy.y, this.player.x, this.player.y);
+            if (dist < 300 && time > this.enemyLastShot) {
+                const bullet = this.enemyBullets.create(this.enemy.x - 20, this.enemy.y, 'bullet');
+                this.physics.moveToObject(bullet, this.player, 300);
+                this.enemyLastShot = time + 1000;
+            }
+        }
+    }
+
+    handleEnemyHit(bullet, enemy) {
+        bullet.destroy();
+        this.enemyHealth -= 10;
+        this.hitSound.play();
+        this.drawEnemyHealth();
+
+        if (this.enemyHealth <= 0) {
+            this.enemy.destroy();
+        }
+    }
+
+    handlePlayerHit(player, bullet) {
+        bullet.destroy();
+        this.hitSound.play();
+
+    }
+
+    drawEnemyHealth() {
+        this.enemyHealthBar.clear();
+        this.enemyHealthBar.fillStyle(0xff0000);
+        this.enemyHealthBar.fillRect(this.enemy.x - 25, this.enemy.y - 50, 50 * (this.enemyHealth / 100), 6);
     }
 }

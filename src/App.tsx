@@ -2,9 +2,9 @@ import React, { ReactElement } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './Auth/component/Login';
 import Signup from './Auth/component/Signup';
-import Dashboard from './landing_page/component/Dashboard';
+import Dashboard from './landing_page/component/dashboard/Dashboard';
 import GameRoom from './landing_page/component/game/GameRoom';
-import CharacterSelection from './landing_page/component/CharacterSelection'; // ✅ NEW IMPORT
+import CharacterSelection from './landing_page/component/CharacterSelection';
 import { isLoggedIn } from './auth';
 import './App.css';
 
@@ -33,7 +33,6 @@ const App: React.FC = () => {
           }
         />
 
-        {/* ✅ NEW: Character Selection Route */}
         <Route
           path="/select-character"
           element={
@@ -44,7 +43,7 @@ const App: React.FC = () => {
         />
 
         <Route
-          path="/game/:roomId"
+          path="/game"
           element={
             <ProtectedRoute>
               <GameRoom />
