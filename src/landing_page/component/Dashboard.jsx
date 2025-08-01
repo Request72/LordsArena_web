@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import '../css/dashboard.css';
-import DashImg from '../../assets/images/background.png';
-import AvatarImg from '../../assets/images/prachanda.png';
+
+// ✅ Use public asset paths (not imports)
+const DashImg = '/assets/images/background.png';
+const AvatarImg = '/assets/images/prachanda.png';
 
 const socket = io('http://localhost:5000');
 
