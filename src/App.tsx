@@ -16,11 +16,21 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps): ReactElement => {
   return isLoggedIn() ? children : <Navigate to="/login" replace />;
 };
 
+//  Default route redirect logic
+const DefaultRedirect = () => {
+  const loggedIn = isLoggedIn();
+  const character = localStorage.getItem('selectedCharacter');
+
+  if (!loggedIn) return <Navigate to="/login" replace />;
+  if (!character) return <Navigate to="/select-character" replace />;
+  return <Navigate to="/dashboard" replace />;
+};
+
 const App: React.FC = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Navigate to={isLoggedIn() ? '/dashboard' : '/login'} replace />} />
+        <Route path="/" element={<DefaultRedirect />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
 
