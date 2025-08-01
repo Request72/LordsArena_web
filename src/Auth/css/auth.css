@@ -5,7 +5,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background: url('../../assets/images/background.png') no-repeat center top fixed;
+    background: url('/public/assets/images/background.png') no-repeat center top fixed;
     background-size: cover;
     padding: 1rem;
     font-family: 'Orbitron', sans-serif;
