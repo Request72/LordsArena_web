@@ -6,6 +6,7 @@ import '../css/auth.css';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [keepLoggedIn, setKeepLoggedIn] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -25,8 +26,18 @@ const Login = () => {
         password,
       });
 
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('username', res.data.username);
+      // Store token based on "keep logged in" preference
+      if (keepLoggedIn) {
+        // Use localStorage for persistent login
+        localStorage.setItem('token', res.data.token);
+        localStorage.setItem('username', res.data.username);
+        localStorage.setItem('keepLoggedIn', 'true');
+      } else {
+        // Use sessionStorage for session-only login
+        sessionStorage.setItem('token', res.data.token);
+        sessionStorage.setItem('username', res.data.username);
+        sessionStorage.setItem('keepLoggedIn', 'false');
+      }
 
       navigate('/dashboard');
     } catch (error) {
@@ -60,12 +71,23 @@ const Login = () => {
           required
         />
 
+        <div className="keep-logged-in">
+          <label>
+            <input
+              type="checkbox"
+              checked={keepLoggedIn}
+              onChange={(e) => setKeepLoggedIn(e.target.checked)}
+            />
+            <span>Keep me logged in</span>
+          </label>
+        </div>
+
         <button type="submit" disabled={loading}>
           {loading ? 'Logging in...' : 'Login'}
         </button>
 
         <p className="auth-switch">
-          Don’t have an account? <Link to="/signup">Sign Up</Link>
+          Don't have an account? <Link to="/signup">Sign Up</Link>
         </p>
       </form>
     </div>

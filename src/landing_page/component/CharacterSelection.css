@@ -25,32 +25,31 @@
 }
 
 .character-card {
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(0, 0, 0, 0.3);
     border: 2px solid cyan;
-    border-radius: 20px;
-    padding: 1rem 2rem;
-    text-align: center;
-    transition: all 0.3s ease;
+    border-radius: 50%;
+    padding: 1rem;
+    width: 200px;
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
 }
 
 .character-card:hover {
     transform: scale(1.05);
-    box-shadow: 0 0 25px cyan;
+    box-shadow: 0 0 20px cyan;
 }
 
 .character-card img {
-    width: 140px;
-    height: 140px;
+    width: 100px;
+    height: 100px;
     object-fit: cover;
     border-radius: 50%;
     border: 3px solid cyan;
-    margin-bottom: 1rem;
-}
-
-.character-name {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: white;
+    margin-bottom: 0.5rem;
 }

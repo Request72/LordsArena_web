@@ -1,135 +1,125 @@
 import Phaser from 'phaser';
 import Enemy from './Enemy';
-import backgroundImg from '../../../assets/images/background.png';
-import bulletImg from '../../../assets/images/bullet.png';
-import hitSound from '../../../assets/audio/hit.wav';
-import bgMusic from '../../../assets/audio/background.mp3';
-import sherImg from '../../../assets/images/sher.png';
+import backgroundMusic from '../../../assets/audio/background.mp3';
 import kpImg from '../../../assets/images/kp.png';
+import sherImg from '../../../assets/images/sher.png';
 import prachandaImg from '../../../assets/images/prachanda.png';
+import bulletImg from '../../../assets/images/bullet.png';
+import backgroundImg from '../../../assets/images/background.png';
+import hitSound from '../../../assets/audio/hit.wav';
 
 class MainScene extends Phaser.Scene {
     constructor() {
-        super({ key: 'MainScene' });
+        super('MainScene');
         this.player = null;
-        this.enemies = null;
-        this.bullets = null;
-        this.score = 0;
         this.health = 100;
-        this.healthBar = null;
-        this.scoreText = null;
+        this.score = 0;
         this.gameOver = false;
+        this.enemyInstances = []; // Store enemy instances
+        this.isDestroyed = false;
     }
 
     preload() {
-        const loadingText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'Loading...', {
-            fontSize: '32px',
-            fill: '#ffffff',
-        }).setOrigin(0.5);
-
-        this.load.on('progress', (value) => {
-            loadingText.setText(`Loading... ${Math.round(value * 100)}%`);
-        });
-
-        this.load.on('complete', () => {
-            loadingText.destroy();
-        });
-
         this.load.image('background', backgroundImg);
         this.load.image('bullet', bulletImg);
         this.load.audio('hit', hitSound);
-        this.load.audio('bgMusic', bgMusic);
-        this.load.image('sher', sherImg);
+        this.load.audio('bgMusic', backgroundMusic);
         this.load.image('kp', kpImg);
+        this.load.image('sher', sherImg);
         this.load.image('prachanda', prachandaImg);
     }
 
-
     create() {
+        if (this.isDestroyed) return;
+
         this.add.image(0, 0, 'background').setOrigin(0).setDisplaySize(this.scale.width, this.scale.height);
+        const character = JSON.parse(localStorage.getItem('selectedCharacter'));
+        const avatarKey = character ? character.avatar.split('/').pop().split('.')[0] : 'kp';
 
-        const selectedCharacter = JSON.parse(localStorage.getItem('selectedCharacter'));
-        const avatarKey = selectedCharacter && selectedCharacter.avatar ?
-            selectedCharacter.avatar.split('.')[0] :
-            'kp';
-        this.player = this.physics.add.sprite(400, 300, avatarKey).setScale(0.3);
-        this.player.setCollideWorldBounds(true);
-
+        this.player = this.physics.add.sprite(400, 300, avatarKey).setScale(0.3).setCollideWorldBounds(true);
         this.bullets = this.physics.add.group();
-        this.input.on('pointerdown', this.shootBullet, this);
-
         this.enemies = this.physics.add.group();
-        this.time.addEvent({ delay: 2000, callback: this.spawnEnemy, callbackScope: this, loop: true });
 
         this.healthBar = this.add.rectangle(100, 30, 200, 20, 0xff0000).setScrollFactor(0);
         this.scoreText = this.add.text(16, 50, 'Score: 0', { fontSize: '18px', fill: '#fff' }).setScrollFactor(0);
 
         this.physics.add.overlap(this.bullets, this.enemies, this.hitEnemy, null, this);
         this.physics.add.overlap(this.player, this.enemies, this.playerHit, null, this);
-        this.scoreboard = this.add.text(this.scale.width / 2, 10, 'Kills: 0', {
-            fontSize: '20px',
-            fill: '#fff',
-            fontFamily: 'Orbitron',
-        }).setOrigin(0.5, 0).setScrollFactor(0);
+        this.bgMusic = this.sound.add('bgMusic', { loop: true, volume: 0.5 });
+        this.bgMusic.play();
+
+        this.input.on('pointerdown', this.shootBullet, this);
+        this.cursors = this.input.keyboard.createCursorKeys();
+
+        this.time.addEvent({ delay: 2000, callback: this.spawnEnemy, callbackScope: this, loop: true });
 
         this.sound.add('hit');
-        const music = this.sound.add('bgMusic', { loop: true });
-        music.play();
-
-
-
-        this.cursors = this.input.keyboard.createCursorKeys();
-        this.scoreboardText = this.add.text(this.scale.width - 200, 30, 'Kills: 0', {
-            fontSize: '18px',
-            fill: '#ffffff',
-        }).setScrollFactor(0);
-
     }
 
     update() {
-        if (this.gameOver) return;
+        if (this.gameOver || this.isDestroyed) return;
 
-        const speed = 200;
         this.player.setVelocity(0);
+        if (this.cursors.left.isDown) this.player.setVelocityX(-200);
+        else if (this.cursors.right.isDown) this.player.setVelocityX(200);
+        if (this.cursors.up.isDown) this.player.setVelocityY(-200);
+        else if (this.cursors.down.isDown) this.player.setVelocityY(200);
 
-        if (this.cursors.left.isDown) this.player.setVelocityX(-speed);
-        else if (this.cursors.right.isDown) this.player.setVelocityX(speed);
-        if (this.cursors.up.isDown) this.player.setVelocityY(-speed);
-        else if (this.cursors.down.isDown) this.player.setVelocityY(speed);
+        // Update all enemy instances
+        this.enemyInstances.forEach(enemy => {
+            if (enemy && enemy.sprite && enemy.sprite.active) {
+                enemy.update();
+            }
+        });
+
+        // Clean up destroyed enemies
+        this.enemyInstances = this.enemyInstances.filter(enemy =>
+            enemy && enemy.sprite && enemy.sprite.active
+        );
     }
 
     shootBullet(pointer) {
-        if (this.gameOver) return;
+        if (this.gameOver || this.isDestroyed) return;
         const bullet = this.bullets.create(this.player.x, this.player.y, 'bullet').setScale(0.03);
         this.physics.moveTo(bullet, pointer.x, pointer.y, 500);
     }
 
     spawnEnemy() {
+        if (this.isDestroyed) return;
         const x = Phaser.Math.Between(0, this.scale.width);
         const y = Phaser.Math.Between(0, this.scale.height);
-        const enemyObj = new Enemy(this, x, y, 'sher');
-        this.enemies.add(enemyObj.sprite);
+        const enemy = new Enemy(this, x, y, 'sher');
+        this.enemies.add(enemy.sprite);
+        this.enemyInstances.push(enemy);
     }
 
-    hitEnemy(bullet, enemy) {
+    hitEnemy(bullet, enemySprite) {
         bullet.destroy();
-        enemy.hp -= 1;
-        if (enemy.hp <= 0) {
-            this.sound.play('hit');
-            enemy.destroy();
-            this.score += 10;
-            this.scoreText.setText(`Score: ${this.score}`);
-            this.scoreboardText.setText(`Kills: ${this.enemies.getChildren().length}`);
-            this.health += 5;
-            this.killCount = (this.killCount || 0) + 1;
-            this.scoreboard.setText(`Kills: ${this.killCount}`);
 
+        // Find the enemy instance that corresponds to this sprite
+        const enemyInstance = this.enemyInstances.find(enemy => enemy.sprite === enemySprite);
 
+        if (enemyInstance) {
+            enemyInstance.hp -= 1;
+            if (enemyInstance.hp <= 0) {
+                this.sound.play('hit');
+                enemyInstance.destroy();
+                this.enemyInstances = this.enemyInstances.filter(e => e !== enemyInstance);
+                this.score += 10;
+                this.scoreText.setText(`Score: ${this.score}`);
+            }
         }
     }
 
-    playerHit(player, enemy) {
-        enemy.destroy();
+    playerHit(player, enemySprite) {
+        // Find the enemy instance that corresponds to this sprite
+        const enemyInstance = this.enemyInstances.find(enemy => enemy.sprite === enemySprite);
+
+        if (enemyInstance) {
+            enemyInstance.destroy();
+            this.enemyInstances = this.enemyInstances.filter(e => e !== enemyInstance);
+        }
+
         this.health -= 25;
         this.healthBar.width = Math.max(0, (this.health / 100) * 200);
         if (this.health <= 0) this.handleGameOver();
@@ -139,17 +129,54 @@ class MainScene extends Phaser.Scene {
         this.gameOver = true;
         this.player.setTint(0xff0000);
         this.physics.pause();
-
         this.add.text(this.scale.width / 2 - 100, this.scale.height / 2, '💀 Game Over 💀', {
             fontSize: '32px',
             fill: '#fff',
         });
-
         this.sendScoreToBackend(this.score);
 
+        // Clean up before restart
+        this.cleanupGame();
+
         setTimeout(() => {
-            this.scene.restart();
+            try {
+                this.scene.restart();
+            } catch (error) {
+                console.error('Scene restart error:', error);
+                // Fallback: reload the page
+                window.location.reload();
+            }
         }, 4000);
+    }
+
+    cleanupGame() {
+        // Clean up all enemies
+        this.enemyInstances.forEach(enemy => {
+            if (enemy && enemy.sprite) {
+                enemy.destroy();
+            }
+        });
+        this.enemyInstances = [];
+
+        // Clean up bullets
+        if (this.bullets) {
+            this.bullets.clear(true, true);
+        }
+
+        // Clean up enemies group
+        if (this.enemies) {
+            this.enemies.clear(true, true);
+        }
+
+        // Stop background music
+        if (this.bgMusic) {
+            this.bgMusic.stop();
+        }
+
+        // Remove event listeners
+        if (this.input) {
+            this.input.off('pointerdown', this.shootBullet, this);
+        }
     }
 
     sendScoreToBackend(score) {
