@@ -28,7 +28,7 @@ const Signup = () => {
       });
 
       localStorage.setItem('token', response.data.token);
-      localStorage.setItem('username', response.data.username); // Optional: For Dashboard greeting
+      localStorage.setItem('username', response.data.username); 
       navigate('/dashboard');
     } catch (err) {
       console.error('Signup error:', err);

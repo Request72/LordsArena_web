@@ -1,44 +1,55 @@
-.character-selection-container {
-    text-align: center;
-    padding: 40px;
-    background: #111;
-    color: #fff;
+.select-character-container {
     min-height: 100vh;
+    background: url('../../assets/images/background.png') no-repeat center center fixed;
+    background-size: cover;
+    font-family: 'Orbitron', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 2rem;
+    color: white;
+}
+
+.select-character-title {
+    font-size: 2.5rem;
+    color: cyan;
+    text-shadow: 0 0 10px cyan;
+    margin-bottom: 2rem;
 }
 
 .character-grid {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
-    gap: 20px;
-    margin-top: 20px;
+    gap: 2rem;
 }
 
 .character-card {
-    border: 2px solid transparent;
-    padding: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 2px solid cyan;
+    border-radius: 50%;
+    padding: 1rem;
+    width: 200px;
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    transition: transform 0.3s, border 0.3s;
-    background: #222;
-    border-radius: 10px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+}
+
+.character-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px cyan;
 }
 
 .character-card img {
     width: 100px;
     height: 100px;
-}
-
-.character-card.selected {
-    border: 2px solid #00ffcc;
-    transform: scale(1.1);
-}
-
-.start-button {
-    margin-top: 30px;
-    padding: 10px 20px;
-    font-size: 18px;
-    background: #00ffcc;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid cyan;
+    margin-bottom: 0.5rem;
 }

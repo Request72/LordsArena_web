@@ -1,0 +1,19 @@
+.leaderboard-container {
+    background: rgba(0, 0, 0, 0.6);
+    color: cyan;
+    padding: 1rem;
+    border-radius: 12px;
+    margin-top: 20px;
+    font-family: 'Orbitron', sans-serif;
+}
+
+.leaderboard-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.leaderboard-list li {
+    padding: 0.5rem;
+    border-bottom: 1px solid cyan;
+}

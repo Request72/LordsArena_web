@@ -1,0 +1,29 @@
+import { calculateDamage, getRandomSpawn, isColliding } from '../gameUtils';
+
+describe('Game Utils - Unit Tests', () => {
+  test('calculateDamage returns correct damage', () => {
+    expect(calculateDamage(100, 0)).toBe(100);
+    expect(calculateDamage(100, 50)).toBe(90);
+    expect(calculateDamage(50, 100)).toBe(30);
+  });
+
+  test('getRandomSpawn returns within bounds', () => {
+    const spawn = getRandomSpawn();
+    expect(spawn.x).toBeGreaterThanOrEqual(0);
+    expect(spawn.x).toBeLessThan(800);
+    expect(spawn.y).toBeGreaterThanOrEqual(0);
+    expect(spawn.y).toBeLessThan(600);
+  });
+
+  test('isColliding detects overlap', () => {
+    const a = { x: 100, y: 100 };
+    const b = { x: 110, y: 110 };
+    expect(isColliding(a, b)).toBe(true);
+  });
+
+  test('isColliding detects non-overlap', () => {
+    const a = { x: 0, y: 0 };
+    const b = { x: 100, y: 100 };
+    expect(isColliding(a, b)).toBe(false);
+  });
+});

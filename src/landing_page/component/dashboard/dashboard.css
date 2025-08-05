@@ -1,0 +1,107 @@
+.dashboard-container {
+    min-height: 100vh;
+    background: linear-gradient( rgba(2, 0, 36, 0.8), rgba(9, 9, 121, 0.7), rgba(0, 212, 255, 0.6)), url('../../../assets/images/background.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: white;
+    text-align: center;
+    padding: 2rem;
+    font-family: 'Orbitron', sans-serif;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+}
+
+.dashboard-header h1 {
+    margin: 0;
+    color: cyan;
+    text-shadow: 0 0 10px cyan;
+}
+
+.logout-button {
+    padding: 0.5rem 1rem;
+    background: rgba(255, 0, 0, 0.8);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+}
+
+.logout-button:hover {
+    background: rgba(255, 0, 0, 1);
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+    transform: scale(1.05);
+}
+
+.selected-character {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2rem;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    margin: 2rem auto;
+    max-width: 400px;
+}
+
+.selected-character-img {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid cyan;
+    margin-top: 1rem;
+}
+
+.start-game-button {
+    margin-top: 2rem;
+    padding: 1rem 2rem;
+    font-size: 1.2rem;
+    background: rgba(0, 255, 255, 0.9);
+    color: black;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    backdrop-filter: blur(5px);
+}
+
+.start-game-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+    background: rgba(0, 255, 255, 1);
+}
+
+.leaderboard-section {
+    margin-top: 3rem;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2rem;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+}
+
+.leaderboard-section ol {
+    list-style: decimal;
+    padding: 0;
+    margin-top: 1rem;
+}
+
+.leaderboard-section li {
+    font-size: 1.1rem;
+    margin: 0.5rem 0;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}

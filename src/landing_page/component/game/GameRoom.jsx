@@ -7,14 +7,11 @@ const GameRoom = () => {
 
   useEffect(() => {
     if (!gameRef.current) {
-      const config = {
+      gameRef.current = new Phaser.Game({
         type: Phaser.AUTO,
-        width: window.innerWidth,
-        height: window.innerHeight,
-        scale: {
-          mode: Phaser.Scale.RESIZE,
-          autoCenter: Phaser.Scale.CENTER_BOTH,
-        },
+        width: 800,
+        height: 600,
+        parent: 'phaser-container',
         physics: {
           default: 'arcade',
           arcade: {
@@ -23,22 +20,45 @@ const GameRoom = () => {
           },
         },
         scene: [MainScene],
-        parent: 'phaser-container',
-      };
-
-      gameRef.current = new Phaser.Game(config);
+        callbacks: {
+          preBoot: function (game) {
+            // Ensure proper cleanup
+            game.events.on('destroy', () => {
+              if (game.scene && game.scene.scenes) {
+                game.scene.scenes.forEach(scene => {
+                  if (scene && scene.events) {
+                    scene.events.removeAllListeners();
+                  }
+                });
+              }
+            });
+          }
+        }
+      });
     }
 
-    // Cleanup on unmount
     return () => {
       if (gameRef.current) {
-        gameRef.current.destroy(true);
+        try {
+          // Safely destroy the game
+          const game = gameRef.current;
+          if (game.scene && game.scene.scenes) {
+            game.scene.scenes.forEach(scene => {
+              if (scene && scene.events) {
+                scene.events.removeAllListeners();
+              }
+            });
+          }
+          game.destroy(true);
+        } catch (error) {
+          console.error('Error destroying game:', error);
+        }
         gameRef.current = null;
       }
     };
   }, []);
 
-  return <div id="phaser-container" style={{ width: '100vw', height: '100vh' }} />;
+  return <div id="phaser-container" style={{ width: '100%', height: '100vh' }} />;
 };
 
 export default GameRoom;
